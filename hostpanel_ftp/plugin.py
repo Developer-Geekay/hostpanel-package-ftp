@@ -13,6 +13,13 @@ PLUGIN_MANIFEST = {
     "nav_icon": "swap_vert",
     "nav_section": "my_space",
     "admin_only": False,
+    "service": {
+        "name": "ftp",
+        "unit": "hostpanel-ftp",
+        "label": "FTP Server",
+        "icon": "swap_vert",
+        "can_reload": False,
+    },
 }
 
 router = APIRouter(prefix="/cpanelapi/ftp", tags=["FTP"])
