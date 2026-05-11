@@ -14,6 +14,9 @@ setup(
         ],
         "hostpanel.lifecycle": [
             "hostpanel-ftp = hostpanel_ftp.lifecycle:pre_uninstall"
-        ]
+        ],
+        "hostpanel.setup": [
+            "hostpanel-ftp = hostpanel_ftp.lifecycle:on_install"
+        ],
     }
 )
