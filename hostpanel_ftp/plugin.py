@@ -8,11 +8,22 @@ from deps import get_current_user
 from auth import User
 
 PLUGIN_MANIFEST = {
-    "nav_route": "ftp",
-    "nav_label": "FTP",
-    "nav_icon": "swap_vert",
-    "nav_section": "my_space",
-    "admin_only": False,
+    "nav_items": [{
+        "nav_route":         "ftp",
+        "nav_label":         "FTP",
+        "nav_icon":          "swap_vert",
+        "nav_section":       "my_space",
+        "nav_section_label": "My Space",
+        "nav_section_order": 20,
+        "admin_only":        False,
+    }],
+    "dashboard_blocks": [{
+        "type":     "stat",
+        "label":    "FTP Accounts",
+        "icon":     "swap_vert",
+        "endpoint": "ftp/count",
+        "size":     "sm",
+    }],
     "service": {
         "name": "ftp",
         "unit": "hostpanel-ftp",
@@ -150,3 +161,17 @@ async def delete_ftp_account(username: str, current_user: User = Depends(get_cur
     _run([PURE_PW, "userdel", username, "-f", PASSWD_FILE])
     _rebuild_db()
     return {"message": f"FTP account {username} deleted"}
+
+
+@router.get("/count")
+async def count_ftp_accounts():
+    """Return total FTP account count for the dashboard block."""
+    try:
+        result = subprocess.run(
+            ["sudo", PURE_PW, "list", "-f", PASSWD_FILE],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
+        total = sum(1 for line in result.stdout.strip().splitlines() if line)
+        return {"count": total}
+    except Exception:
+        return {"count": 0}
