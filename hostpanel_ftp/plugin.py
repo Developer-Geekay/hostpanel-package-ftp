@@ -36,9 +36,9 @@ PLUGIN_MANIFEST = {
 router = APIRouter(prefix="/cpanelapi/ftp", tags=["FTP"])
 logger = logging.getLogger(__name__)
 
-PURE_PW   = "/opt/hostpanel/ftp/bin/pure-pw"
-PASSWD_FILE = "/opt/hostpanel/ftp/etc/pureftpd.passwd"
-PDB_FILE    = "/opt/hostpanel/ftp/etc/pureftpd.pdb"
+PURE_PW   = "/opt/hostpanel/plugins/ftp/pure-pw"
+PASSWD_FILE = "/opt/hostpanel/plugins/ftp/etc/pureftpd.passwd"
+PDB_FILE    = "/opt/hostpanel/plugins/ftp/etc/pureftpd.pdb"
 
 
 class FTPAccount(BaseModel):

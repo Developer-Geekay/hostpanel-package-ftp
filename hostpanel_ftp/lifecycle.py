@@ -5,12 +5,12 @@ from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
-PURE_PW = "/opt/hostpanel/ftp/bin/pure-pw"
-PASSWD_FILE = "/opt/hostpanel/ftp/etc/pureftpd.passwd"
-PDB_FILE = "/opt/hostpanel/ftp/etc/pureftpd.pdb"
+PURE_PW = "/opt/hostpanel/plugins/ftp/pure-pw"
+PASSWD_FILE = "/opt/hostpanel/plugins/ftp/etc/pureftpd.passwd"
+PDB_FILE = "/opt/hostpanel/plugins/ftp/etc/pureftpd.pdb"
 SERVICE_NAME = "hostpanel-ftp"
 SERVICE_DST = f"/etc/systemd/system/{SERVICE_NAME}.service"
-FTP_DIR = "/opt/hostpanel/ftp"
+FTP_DIR = "/opt/hostpanel/plugins/ftp"
 
 
 def on_install():
@@ -19,9 +19,8 @@ def on_install():
     from the zip's sbin/ and bin/ directories — no apt required."""
     logger.info("FTP on_install: initialising")
 
-    # Ensure data directories exist (binaries land in sbin/ and bin/ via package manager)
-    for d in ["/opt/hostpanel/ftp/sbin", "/opt/hostpanel/ftp/bin",
-              "/opt/hostpanel/ftp/etc", "/opt/hostpanel/ftp/logs"]:
+    # Ensure data directories exist (binaries land flat in the plugin dir via package manager)
+    for d in ["/opt/hostpanel/plugins/ftp/etc", "/opt/hostpanel/plugins/ftp/logs"]:
         subprocess.run(["sudo", "mkdir", "-p", d], check=True)
 
     # Create initial empty passwd + pdb (only on first install)

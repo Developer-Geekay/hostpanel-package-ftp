@@ -5,8 +5,8 @@ Wants=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/hostpanel/ftp/sbin/pure-ftpd \
-  -l puredb:/opt/hostpanel/ftp/etc/pureftpd.pdb \
+ExecStart=/opt/hostpanel/plugins/ftp/pure-ftpd \
+  -l puredb:/opt/hostpanel/plugins/ftp/etc/pureftpd.pdb \
   -A \
   -E \
   -H \
