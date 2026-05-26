@@ -7,10 +7,15 @@ OUT="hostpanel-ftp-${VERSION}.zip"
 
 echo "Building ${OUT}..."
 rm -f "$OUT"
+
+# Assemble plugin/ subdir (pip-installable root expected by package manager)
+mkdir -p plugin
+cp -r hostpanel_ftp setup.py plugin/
+
 zip -r "$OUT" \
-    hostpanel_ftp/ \
-    setup.py \
+    plugin/ \
     service/ \
     --exclude "**/__pycache__/*" --exclude "**/*.pyc"
 
+rm -rf plugin/
 echo "Done → ${OUT}"
