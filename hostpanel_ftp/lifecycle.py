@@ -111,6 +111,10 @@ def pre_uninstall(force: bool):
         subprocess.run(["sudo", "rm", "-rf", FTP_DIR], capture_output=True)
         logger.info(f"FTP pre_uninstall: removed {FTP_DIR}")
 
+    # Remove plugin sudoers last — all cleanup above still needs those permissions
+    subprocess.run(["sudo", "rm", "-f", "/etc/sudoers.d/hostpanel-ftp"], capture_output=True)
+    logger.info("FTP pre_uninstall: sudoers removed")
+
 
 def on_startup():
     """Called at server startup. Ensures the FTP service is running."""

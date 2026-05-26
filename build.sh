@@ -19,8 +19,8 @@ cp -r hostpanel_ftp setup.py plugin/
 zip -r "$OUT" \
     plugin/ \
     service/ \
-    sbin/ \
     bin/ \
+    sudoers/ \
     --exclude "**/__pycache__/*" --exclude "**/*.pyc"
 
 rm -rf plugin/
