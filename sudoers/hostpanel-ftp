@@ -1,16 +1,6 @@
 # HostPanel ftp plugin sudoers — installed by package manager on upload
 # Removed automatically when the plugin is uninstalled.
-
-Defaults:%hostpanel !requiretty
+# File operations (cp, chmod, chown, mkdir, rm) are covered by core sudoers.
 
 # ── Virtual user management (pure-pw) ─────────────────────────────────────────
 %hostpanel ALL=(root) NOPASSWD: /opt/hostpanel/plugins/ftp/pure-pw *
-
-# ── Data directory setup (on_install) ─────────────────────────────────────────
-%hostpanel ALL=(root) NOPASSWD: /usr/bin/mkdir -p /opt/hostpanel/plugins/ftp/etc
-%hostpanel ALL=(root) NOPASSWD: /usr/bin/mkdir -p /opt/hostpanel/plugins/ftp/logs
-%hostpanel ALL=(root) NOPASSWD: /usr/bin/touch /opt/hostpanel/plugins/ftp/etc/pureftpd.passwd
-%hostpanel ALL=(root) NOPASSWD: /usr/bin/chmod 600 /opt/hostpanel/plugins/ftp/etc/pureftpd.passwd
-
-# ── Force-uninstall cleanup ────────────────────────────────────────────────────
-%hostpanel ALL=(root) NOPASSWD: /usr/bin/rm -rf /opt/hostpanel/plugins/ftp

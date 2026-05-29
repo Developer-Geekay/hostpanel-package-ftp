@@ -16,7 +16,7 @@ FTP_DIR = "/opt/hostpanel/plugins/ftp"
 def on_install():
     """Initialise pure-ftpd data dirs and start the service.
     Binaries (pure-ftpd, pure-pw) are pre-installed by the package manager
-    from the zip's sbin/ and bin/ directories — no apt required."""
+    from the zip's bin/ directory flat into the plugin dir — no apt required."""
     logger.info("FTP on_install: initialising")
 
     # Ensure data directories exist (binaries land flat in the plugin dir via package manager)
@@ -40,9 +40,11 @@ def on_install():
             import importlib.resources as pkg_res
             svc_src = pkg_res.files("hostpanel_ftp").joinpath(f"{SERVICE_NAME}.service")
             with pkg_res.as_file(svc_src) as p:
-                subprocess.run(["sudo", "cp", str(p), SERVICE_DST], check=True)
-                subprocess.run(["sudo", "chmod", "644", SERVICE_DST], check=True)
-                logger.info(f"Installed service file → {SERVICE_DST}")
+                content = p.read_text()
+                r = subprocess.run(["sudo", "tee", SERVICE_DST], input=content, text=True, capture_output=True)
+                if r.returncode == 0:
+                    subprocess.run(["sudo", "chmod", "644", SERVICE_DST], capture_output=True)
+                    logger.info(f"Installed service file → {SERVICE_DST}")
         except Exception as e:
             logger.warning(f"Could not install bundled service file: {e}")
 
