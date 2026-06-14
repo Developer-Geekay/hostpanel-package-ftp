@@ -13,7 +13,7 @@
 ## Scenario 1: Install from zip
 
 Steps:
-1. Build `hostpanel-ftp-1.1.0.zip`.
+1. Build `hostpanel-ftp-1.1.3.zip`.
 2. Upload it in Packages.
 3. Wait for HostPanel restart.
 
