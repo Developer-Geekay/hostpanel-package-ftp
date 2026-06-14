@@ -1,71 +1,157 @@
-# hostpanel-ftp — Test Scenarios
+# hostpanel-ftp - Test Scenarios
 
 ## Prerequisites
-- Panel running on :2082, logged in as admin
-- At least one hosting user exists (e.g. `testuser`)
-- FTP client available (e.g. FileZilla, `ftp` CLI, `lftp`)
+
+- HostPanel running and logged in as admin.
+- At least one hosting user exists, for example `testuser`.
+- Firewall allows TCP `21` and passive ports `40000-40100`.
+- FTP client available, for example FileZilla or `lftp`.
+- Package zip built with ARM64 Linux `bin/pure-ftpd` and `bin/pure-pw`.
 
 ---
 
-## SCENARIO 1: Enable FTP for a user via Users page
-Steps:
-1. Navigate to Users → find `testuser`
-2. Click the vertical-dots menu → "Enable FTP"
-3. Enter a password and submit
-Expected:
-- Success toast "FTP enabled for testuser"
-- User row now shows FTP toggle as enabled
-- `pure-pw list` on server shows `testuser`
+## Scenario 1: Install from zip
 
-## SCENARIO 2: FTP login succeeds
 Steps:
-1. Open FileZilla → connect to `<server-ip>` port 21
-2. Login as `testuser` with the FTP password set in Scenario 1
-Expected:
-- Connection succeeds
-- Directory listing shows `/home/testuser/` contents
+1. Build `hostpanel-ftp-1.1.0.zip`.
+2. Upload it in Packages.
+3. Wait for HostPanel restart.
 
-## SCENARIO 3: FTP passive mode works (PASV)
-Steps:
-1. Same as Scenario 2, but ensure FileZilla is in Passive mode (default)
 Expected:
-- Directory listing loads without timeout (passive ports 40000–40100 must be open)
+- `/cpanelapi/packages/installed` lists `hostpanel-ftp`.
+- Package compatibility is `true`.
+- Service metadata includes `hostpanel-ftp`.
+- `/opt/hostpanel/plugins/ftp/pure-ftpd` exists and is executable.
+- `/opt/hostpanel/plugins/ftp/pure-pw` exists and is executable.
+- `/etc/systemd/system/hostpanel-ftp.service` exists.
+- `/etc/sudoers.d/hostpanel-ftp` exists.
+- `systemctl is-active hostpanel-ftp` returns `active`.
 
-## SCENARIO 4: Change FTP password
+## Scenario 2: Frontend loads
+
 Steps:
-1. Navigate to Users → `testuser` → "Change FTP Password"
-2. Enter a new password
+1. Navigate to `/app/ftp`.
+
 Expected:
-- Old password no longer works
-- New password logs in successfully
+- FTP page loads.
+- Browser does not show "Package ftp did not register a plugin".
+- Network request for `/packages/ftp/main.js` succeeds.
 
-## SCENARIO 5: Disable FTP for a user
+## Scenario 3: Admin creates FTP account
+
 Steps:
-1. Navigate to Users → `testuser` → "Disable FTP"
+1. Open `/app/ftp`.
+2. Click Create Account.
+3. Enter username `testuser`, a password, and optional directory `/home/testuser`.
+
 Expected:
-- FTP toggle shows disabled
-- FileZilla login with old credentials returns "Login incorrect"
+- Success toast appears.
+- Account appears in the table.
+- `sudo /opt/hostpanel/plugins/ftp/pure-pw list -f /opt/hostpanel/plugins/ftp/etc/pureftpd.passwd` shows `testuser`.
 
-## SCENARIO 6: User deletes their own FTP account (standard user)
+## Scenario 4: Directory validation
+
 Steps:
-1. Log in as `testuser` (non-admin portal account)
-2. Navigate to FTP page
-3. Delete the FTP account
+1. Try to create an account for `testuser` with directory `/home/testuser2`.
+2. Try again with `/tmp`.
+
 Expected:
-- Account removed; FTP login no longer works
+- Both requests are rejected with 400.
+- No account is created for invalid paths.
 
-## SCENARIO 7: Uninstall FTP plugin with no accounts
+## Scenario 5: FTP login succeeds
+
 Steps:
-1. Ensure no FTP virtual accounts exist
-2. Packages → uninstall `hostpanel-ftp`
+1. Connect to `<server-ip>` port `21`.
+2. Login as `testuser` with the FTP password.
+
 Expected:
-- Uninstall succeeds; server restarts
-- FTP nav item disappears from sidebar
+- Login succeeds.
+- Directory listing shows `/home/testuser` contents.
 
-## SCENARIO 8: Uninstall FTP plugin with active accounts (force)
+## Scenario 6: Passive mode works
+
 Steps:
-1. Ensure at least one FTP account exists
-2. Packages → uninstall `hostpanel-ftp` (no force)
-Expected: 409 error "Cannot uninstall: N FTP account(s) still exist"
-3. Retry with force=true
-Expected: All accounts removed, uninstall proceeds
+1. Connect with FileZilla using Passive mode.
+
+Expected:
+- Directory listing loads without timeout.
+- Server uses passive ports `40000-40100`.
+
+## Scenario 7: Change password
+
+Steps:
+1. In `/app/ftp`, change password for `testuser`.
+2. Try FTP login with old password.
+3. Try FTP login with new password.
+
+Expected:
+- Old password fails.
+- New password succeeds.
+
+## Scenario 8: Standard-user permissions
+
+Steps:
+1. Log in to HostPanel as non-admin `testuser`.
+2. Open `/app/ftp`.
+3. List accounts.
+4. Try to manage another username through the API.
+
+Expected:
+- User sees only their own FTP account.
+- Managing another account returns 403.
+
+## Scenario 9: Delete FTP account
+
+Steps:
+1. Delete `testuser` in `/app/ftp`.
+
+Expected:
+- Account disappears from the table.
+- FTP login with old credentials fails.
+- Linux user `testuser` and `/home/testuser` are preserved.
+
+## Scenario 10: Startup recovery
+
+Steps:
+1. Stop FTP service: `sudo systemctl stop hostpanel-ftp`.
+2. Restart HostPanel.
+
+Expected:
+- `hostpanel.hooks.on_startup` starts FTP again.
+- `systemctl is-active hostpanel-ftp` returns `active`.
+
+## Scenario 11: User delete hook
+
+Steps:
+1. Create FTP account for `testuser`.
+2. Delete hosting user `testuser` from HostPanel Users.
+
+Expected:
+- FTP virtual account for `testuser` is removed.
+- FTP database is rebuilt.
+- No unrelated FTP accounts are removed.
+
+## Scenario 12: Uninstall blocked with active accounts
+
+Steps:
+1. Ensure at least one FTP account exists.
+2. Uninstall `hostpanel-ftp` without force.
+
+Expected:
+- Uninstall returns 409: `Cannot uninstall: N FTP account(s) still exist. Use force=True to remove them.`
+- Service and accounts remain intact.
+
+## Scenario 13: Force uninstall
+
+Steps:
+1. Uninstall `hostpanel-ftp` with `force=true`.
+
+Expected:
+- FTP virtual accounts are deleted.
+- `hostpanel-ftp` service is stopped and disabled.
+- `/etc/systemd/system/hostpanel-ftp.service` is removed.
+- `/opt/hostpanel/plugins/ftp` is removed.
+- `/etc/sudoers.d/hostpanel-ftp` is removed.
+- Linux users and home directories are preserved.
+- FTP nav item disappears after HostPanel restart.

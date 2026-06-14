@@ -5,3 +5,8 @@ dist/
 build/
 .env
 *.pem
+.DS_Store
+.build-pureftpd/
+*.zip
+pure-ftpd-*.tar.gz
+pure-ftpd-built-bin.tar.gz
