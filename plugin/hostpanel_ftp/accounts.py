@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from auth import User
 from deps import get_current_user
+from modules.audit.logger import log_action
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +153,7 @@ async def create_ftp_account(request: FTPCreateRequest, current_user: User = Dep
     password_input = f"{request.password}\n{request.password}\n"
     _run([PURE_PW, "useradd", username, "-u", username, "-d", home_dir, "-f", PASSWD_FILE], input_data=password_input)
     _rebuild_db()
+    log_action(current_user.username, "ftp.account_create", username, f"home={home_dir}")
     return {"status": "success", "message": f"FTP account {username} created"}
 
 
@@ -169,6 +171,7 @@ async def change_ftp_password(
     password_input = f"{request.new_password}\n{request.new_password}\n"
     _run([PURE_PW, "passwd", username, "-f", PASSWD_FILE], input_data=password_input)
     _rebuild_db()
+    log_action(current_user.username, "ftp.password_change", username)
     return {"status": "success", "message": f"FTP password changed for {username}"}
 
 
@@ -181,6 +184,7 @@ async def delete_ftp_account(username: str, current_user: User = Depends(get_cur
 
     _run([PURE_PW, "userdel", username, "-f", PASSWD_FILE])
     _rebuild_db()
+    log_action(current_user.username, "ftp.account_delete", username)
     return {"status": "success", "message": f"FTP account {username} deleted"}
 
 
