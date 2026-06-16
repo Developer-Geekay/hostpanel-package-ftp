@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="hostpanel-ftp",
-    version="1.1.3",
+    version="1.1.4",
     packages=find_packages(),
     install_requires=[
         "fastapi",
